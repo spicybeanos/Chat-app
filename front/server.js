@@ -142,7 +142,6 @@ app.post('/register', (req, res) => {
             res.redirect('/login');
         }
         if (resp_reg.status === 201) {
-            res.send("registered succesfully");
             req.session.user = { username };
             res.redirect('/');
         }
