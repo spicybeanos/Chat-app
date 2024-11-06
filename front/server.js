@@ -56,8 +56,8 @@ function renderRegisterPage() {
     return (_home.toString()).replace('{CONT}', _reg);
 }
 
-function renderHomePage() {
-    return (_home.toString()).replace('{CONT}', _chatForm);
+function renderHomePage(user) {
+    return (_home.toString()).replace('{CONT}', _chatForm).replace('{USER}',user);
 }
 
 const t_me = (fs.readFileSync(filePaths.c_me)).toString();
@@ -156,7 +156,7 @@ app.post('/register', (req, res) => {
 
 app.get('/', checkAuth, (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.write(renderHomePage());
+    res.write(renderHomePage(req.session.user.username));
     return res.end();
 });
 
@@ -173,7 +173,7 @@ app.get('/register', (req, res) => {
 
 app.post('/chat', checkAuth, (req, res) => {
     const message = req.body.msg;
-    const sender = req.query.me;
+    const sender = req.session.user.username;
     const recv = req.query.username;
     fetch(endpoints.send_message + '/add_message', {
         method: "POST",
@@ -253,9 +253,9 @@ app.post('/chat', checkAuth, (req, res) => {
 });
 
 app.get('/chat', checkAuth, (req, res) => {
-    if (req.query.username && req.query.me) {
+    if (req.query.username) {
         const username = req.query.username;
-        const me = req.query.me;
+        const me = req.session.user.username;
         if (username === '' || me === '') {
             res.send('empty field(s)!');
             console.log("Empty query fields!");
@@ -274,7 +274,7 @@ app.get('/chat', checkAuth, (req, res) => {
                 // then inject into homepage html
                 //send the html to client
                 const t_send = (fs.readFileSync(filePaths.chatSend)).toString()
-                let chats = `<p>${me}  & ` + username + `</p>\n${t_send}\n`;
+                let chats = `<p>Logged in as ${req.session.user.username}</p>\n<p>${me}  & ` + username + `</p>\n${t_send}\n`;
 
                 val.forEach(ms => {
                     chats = chats.concat(renderOneChat(ms.sender, ms.content, ms.sender === me));
